@@ -43,20 +43,36 @@ def resolve_sharedlib(wheel_file: str | Path, libdir: str | Path) -> dict[str, P
 
 
 def copylib(
-    wheel_extract_dir: Path, dep_map: dict[str, Path], dest_dir: str
+    wheel_extract_dir: str | Path, dep_map: dict[str, Path], dest_dir: str
 ) -> dict[str, Path]:
     """
     Copy shared libraries to the destination directory inside a wheel file
     """
-    (wheel_extract_dir / dest_dir).mkdir(parents=True, exist_ok=True)
+    lib_dir = Path(wheel_extract_dir) / dest_dir
+    lib_dir.mkdir(parents=True, exist_ok=True)
 
     new_dep_map = {}
     for depname, realpath in dep_map.items():
-        new_path = wheel_extract_dir / dest_dir / depname
+        new_path = lib_dir / depname
         shutil.copy(realpath, new_path)
         new_dep_map[depname] = new_path
 
     return new_dep_map
+
+
+def repair_extracted(
+    wheel_extract_dir: str | Path,
+    dep_map: dict[str, Path],
+    lib_sdir: str,
+) -> dict[str, Path]:
+    dep_map_copied = copylib(wheel_extract_dir, dep_map, lib_sdir)
+
+    shared_libs = get_all_shared_libs_in_dir(wheel_extract_dir)
+    for shared_lib in shared_libs:
+        patched_module = patch_needed_libs_path(shared_lib, dep_map_copied)
+        shared_lib.write_bytes(patched_module)
+
+    return dep_map_copied
 
 
 def repair(
@@ -71,12 +87,11 @@ def repair(
     if not is_emscripten_wheel(file.name):
         raise RuntimeError(f"{wheel_file} is not an emscripten wheel")
 
-    dep_map: dict[str, Path] = resolve_sharedlib(wheel_file, libdir)
-
     match = WHEEL_INFO_RE.match(file.name)
     if match is None:
         raise RuntimeError(f"Failed to parse wheel file name: {file.name}")
 
+    dep_map: dict[str, Path] = resolve_sharedlib(wheel_file, libdir)
     lib_sdir = match.group("name") + lib_sdir
     outdir = file.parent if outdir is None else Path(outdir)
 
@@ -84,13 +99,7 @@ def repair(
         tmpdir = Path(tmpdirname)
 
         extract_dir = unpack(str(wheel_file), str(tmpdir))
-        dep_map_copied = copylib(extract_dir, dep_map, lib_sdir)
-
-        shared_libs = get_all_shared_libs_in_dir(extract_dir)
-        for shared_lib in shared_libs:
-            patched_module = patch_needed_libs_path(shared_lib, dep_map_copied)
-            shared_lib.write_bytes(patched_module)
-
+        repair_extracted(extract_dir, dep_map, lib_sdir)
         pack(str(extract_dir), str(outdir), None)
 
     return outdir / file.name
