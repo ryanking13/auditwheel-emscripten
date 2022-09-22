@@ -1,3 +1,4 @@
+exclude: (^auditwheel_emscripten/emscripten_tools/)
 default_language_version:
   python: "3.10"
 repos:
@@ -48,8 +49,7 @@ repos:
     rev: "v0.971"
     hooks:
       - id: mypy
-        exclude: (setup.py|^tests|conftest.py)
-        args: []
+        exclude: auditwheel_emscripten/emscripten_tools
         additional_dependencies: &mypy-deps
           - packaging
           - types-docutils
