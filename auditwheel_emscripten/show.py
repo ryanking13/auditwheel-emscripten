@@ -1,30 +1,27 @@
 import tempfile
 from pathlib import Path
 
+from .lib_utils import get_all_shared_libs_in_dir, sharedlib_regex
 from .module import parse_dylink_section
-from .utils import is_emscripten_wheel, sharedlib_regex
+from .wheel_utils import is_emscripten_wheel, unpack
 
 
 def show_wheel(wheel_file: Path) -> dict[str, list[str]]:
-    from zipfile import ZipFile
 
     if not is_emscripten_wheel(wheel_file.name):
         raise RuntimeError(f"{wheel_file} is not an emscripten wheel")
 
-    so_regex = sharedlib_regex()
     dependencies = {}
 
     with tempfile.TemporaryDirectory() as tmpdirname:
         tmpdir = Path(tmpdirname)
-        with ZipFile(wheel_file) as zf:
-            zf.extractall(tmpdir)
 
-            shared_libs = filter(
-                lambda f: so_regex.search(f.name) is not None, tmpdir.glob("**/*")
-            )
-            for shared_lib in shared_libs:
-                deps = show_dylib(shared_lib)
-                dependencies[str(shared_lib.relative_to(tmpdir))] = deps
+        extract_dir = unpack(str(wheel_file), str(tmpdir))
+
+        shared_libs = get_all_shared_libs_in_dir(extract_dir)
+        for shared_lib in shared_libs:
+            deps = show_dylib(shared_lib)
+            dependencies[str(shared_lib.relative_to(tmpdir))] = deps
 
     return dependencies
 
@@ -37,7 +34,7 @@ def show_dylib(dylib_file: Path) -> list[str]:
     return dylink.needed
 
 
-def execute(wheel_or_so_file: Path) -> dict[str, list[str]]:
+def show(wheel_or_so_file: str | Path) -> dict[str, list[str]]:
     file = Path(wheel_or_so_file)
     if not file.exists():
         raise RuntimeError(f"no such file: {file}")

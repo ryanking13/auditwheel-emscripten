@@ -14,6 +14,7 @@ dependencies = [
     "packaging",
     "pyodide-cli",
     "typer[all]",
+    "wheel",
 ]
 
 [project.urls]

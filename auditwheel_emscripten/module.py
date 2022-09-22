@@ -1,30 +1,36 @@
+import os
 from pathlib import Path
 
 import leb128
 
 from .emscripten_tools import webassembly
 from .emscripten_tools.webassembly import HEADER_SIZE, DylinkType
-from .utils import libdir_candidates
 
 
 class ModuleWritable(webassembly.Module):
-    def encode_dylink_section(
-        self, section: webassembly.Section, dylink: webassembly.Dylink
-    ) -> bytes:
+    def encode_dylink_section(self, dylink: webassembly.Dylink) -> bytes:
         """
         Encode given dylib section to bytes
         """
+
+        _dylink_section = next(self.sections())
+        if _dylink_section.name not in ("dylink", "dylink.0"):
+            raise RuntimeError(f"dylink section not found in {self.filename}")
+
+        section_name = _dylink_section.name.encode()
+        section_size = _dylink_section.size
+
         buf = bytearray()
 
         # custom section
         buf += b"\x00"
 
         # section size
-        buf.extend(leb128.u.encode(section.size))
+        buf.extend(leb128.u.encode(section_size))
 
         # section name
-        buf.extend(leb128.u.encode(len(section.name.encode())))
-        buf += section.name.encode()
+        buf.extend(leb128.u.encode(len(section_name)))
+        buf += section_name
 
         # section body
         # 1. MEM_INFO
@@ -91,38 +97,20 @@ class ModuleWritable(webassembly.Module):
         )
         return patched_module
 
-    def write(self, data: bytes, filename: str) -> None:
-        with open(filename, "wb") as f:
-            f.write(data)
+    def patch_needed_path(self, dep_map: dict[str, Path]) -> bytes:
+        curfile = Path(self.filename).resolve()
 
-    def patch_and_write(self, offset: int, data: bytes, filename: str) -> None:
-        raise NotImplementedError()
-        patched_module = self.patch(offset, data)
-        self.write(patched_module, filename)
+        dylink_section: webassembly.Dylink = self.parse_dylink_section()
+        needed_relpath = []
+        for needed_lib in dylink_section.needed:
+            relpath = os.path.relpath(dep_map[needed_lib], curfile.parent)
+            needed_relpath.append(relpath)
 
-    def find_needed_dylibs(self, libdir: str | Path) -> dict[str, str]:
-        libdirs = libdir_candidates(libdir)
+        patched_dylink_section = dylink_section._replace(needed=needed_relpath)
+        encoded_dylink_section = self.encode_dylink_section(patched_dylink_section)
+        patched_module = self.patch_dylink(encoded_dylink_section)
 
-        section = self.parse_dylink_section()
-        needed_libs = section.needed
-        matched_libs = {}
-        for lib in needed_libs:
-            for libdir in libdirs:
-                libpath = libdir / lib
-                if libpath.exists():
-                    break
-            else:
-                raise RuntimeError(f"cannot find library {lib}")
-
-            matched_libs[str(lib)] = str(libpath)
-
-        return matched_libs
-
-    def patch_needed_dylibs(self, libdir: str | Path) -> None:
-        libs = self.find_needed_dylibs(libdir)
-        section = self.parse_dylink_section()
-        section.needed = list(libs.values())
-        self.patch_and_write(section.offset, section.encode(), self.filename)
+        return patched_module
 
 
 def parse_dylink_section(dylib: Path):
@@ -133,3 +121,13 @@ def parse_dylink_section(dylib: Path):
         dylink = m.parse_dylink_section()
 
     return dylink
+
+
+def patch_needed_libs_path(dylib: Path, dep_map: dict[str, Path]):
+    """
+    Patch needed path in dylink section
+    """
+    with ModuleWritable(dylib) as m:
+        patched_module = m.patch_needed_path(dep_map)
+
+    return patched_module

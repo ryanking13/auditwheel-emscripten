@@ -2,8 +2,6 @@ import re
 from functools import cache
 from pathlib import Path
 
-from packaging.utils import parse_wheel_filename
-
 
 def libdir_candidates(libdir: str | Path) -> list[Path]:
     libdir = Path(libdir)
@@ -16,13 +14,14 @@ def libdir_candidates(libdir: str | Path) -> list[Path]:
     ]
 
 
-def is_emscripten_wheel(filename: str) -> bool:
-    _, _, _, tags = parse_wheel_filename(filename)
-    tag = list(tags)[0]
-    platform = tag.platform
-    return platform.startswith("emscripten")
-
-
 @cache
 def sharedlib_regex() -> re.Pattern:
     return re.compile(r"(\.dylib|\.so(.\d+)*)$")
+
+
+def get_all_shared_libs_in_dir(directory: str | Path) -> list[Path]:
+    directory = Path(directory)
+    so_regex = sharedlib_regex()
+    return list(
+        filter(lambda f: so_regex.search(f.name) is not None, directory.glob("**/*"))
+    )
