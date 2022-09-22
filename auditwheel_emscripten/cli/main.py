@@ -24,7 +24,7 @@ def _show(
     Show shared library dependencies of a wheel of a shared library file.
     """
     try:
-        dependencies = show.show(wheel_or_so_file)
+        dependencies = show(wheel_or_so_file)
         rich.print("The following external shared libraries are required:")
         pprint(dependencies)
     except Exception as e:
@@ -47,8 +47,8 @@ def _repair(
     Repair a wheel file: copy shared libraries to the wheel directory and modify the path in the wheel file.
     """
     try:
-        repaired_wheel = repair.repair(wheel_file, libdir, output_dir)
-        dependencies = show.show(repaired_wheel)
+        repaired_wheel = repair(wheel_file, libdir, output_dir)
+        dependencies = show(repaired_wheel)
         rich.print("Repaired wheel has following external shared libraries:")
         pprint(dependencies)
     except RuntimeError as e:
