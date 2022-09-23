@@ -18,15 +18,8 @@ class ModuleWritable(webassembly.Module):
             raise RuntimeError(f"dylink section not found in {self.filename}")
 
         section_name = _dylink_section.name.encode()
-        section_size = _dylink_section.size
 
         buf = bytearray()
-
-        # custom section
-        buf += b"\x00"
-
-        # section size
-        buf.extend(leb128.u.encode(section_size))
 
         # section name
         buf.extend(leb128.u.encode(len(section_name)))
@@ -82,7 +75,16 @@ class ModuleWritable(webassembly.Module):
         buf.extend(leb128.u.encode(len(subsection_buf)))
         buf.extend(subsection_buf)
 
-        return bytes(buf)
+        section_buf = bytearray()
+
+        # custom section
+        section_buf += b"\x00"
+
+        # section size
+        section_buf.extend(leb128.u.encode(len(buf)))
+        section_buf.extend(buf)
+
+        return bytes(section_buf)
 
     def patch_dylink(self, data: bytes) -> bytes:
         orignal_module = open(self.filename, "rb").read()
