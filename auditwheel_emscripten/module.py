@@ -51,7 +51,7 @@ class ModuleWritable(webassembly.Module):
         # 3. EXPORT_INFO
         subsection_buf = bytearray()
         subsection_buf.extend(leb128.u.encode(len(dylink.export_info)))
-        for sym, flags in dylink.export_info:
+        for sym, flags in dylink.export_info.items():
             subsection_buf.extend(leb128.u.encode(len(sym.encode())))
             subsection_buf += sym.encode()
             subsection_buf.extend(leb128.u.encode(flags))
@@ -63,8 +63,8 @@ class ModuleWritable(webassembly.Module):
         # 4. IMPORT_INFO
         subsection_buf = bytearray()
         subsection_buf.extend(leb128.u.encode(len(dylink.import_info)))
-        for module, fields in dylink.import_info:
-            for field, flags in fields:
+        for module, fields in dylink.import_info.items():
+            for field, flags in fields.items():
                 subsection_buf.extend(leb128.u.encode(len(module.encode())))
                 subsection_buf += module.encode()
                 subsection_buf.extend(leb128.u.encode(len(field.encode())))
