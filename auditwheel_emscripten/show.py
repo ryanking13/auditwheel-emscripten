@@ -20,7 +20,7 @@ def show_wheel_unpacked(wheel_extract_dir: str | Path) -> dict[str, list[str]]:
     shared_libs = get_all_shared_libs_in_dir(wheel_extract_dir)
     for shared_lib in shared_libs:
         deps = show_dylib(shared_lib)
-        dependencies[str(shared_lib)] = deps
+        dependencies[str(shared_lib.relative_to(wheel_extract_dir))] = deps
 
     return dependencies
 
