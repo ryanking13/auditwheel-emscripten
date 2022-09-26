@@ -53,3 +53,29 @@ def _repair(
         pprint(dependencies)
     except RuntimeError as e:
         raise e
+
+
+@app.command("copy")
+def _copy(
+    wheel_file: Path = typer.Argument(..., help="Path to wheel file."),
+    libdir: Path = typer.Option(
+        "lib",
+        help="Path to the directory containing the shared libraries.",
+    ),
+    output_dir: Path = typer.Option(
+        None,
+        help="Directory to output repaired wheel or shared library. (default: overwrite the input file)",
+    ),
+):
+    """
+    Copy shared libraries to the wheel directory. Similar to repair but does not modify the needed section of WASM module.
+    """
+    try:
+        repaired_wheel = repair(
+            wheel_file, libdir, output_dir, modify_needed_section=False
+        )
+        dependencies = show(repaired_wheel)
+        rich.print("Repaired wheel has following external shared libraries:")
+        pprint(dependencies)
+    except RuntimeError as e:
+        raise e
