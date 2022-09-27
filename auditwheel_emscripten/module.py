@@ -138,10 +138,10 @@ def patch_needed_libs_path(dylib: Path, dep_map: dict[str, Path]):
 def _get_exports(wasm_file):
     with ModuleWritable(wasm_file) as module:
         exports = module.get_exports()
-        return [e.name for e in exports]
+        return exports
 
 
 def _get_imports(wasm_file):
     with ModuleWritable(wasm_file) as module:
         imports = module.get_imports()
-        return [e.field for e in imports]
+        return imports
