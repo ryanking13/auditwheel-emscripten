@@ -5,6 +5,10 @@
 
 auditwheel-like tool for wheels targeting Emscripten platform
 
+```sh
+$ pip install auditwheel-emscripten
+```
+
 ## What is this?
 
 auditwheel-emscripten is a tiny tool to facilitate the creation of Python wheel packages for
@@ -12,12 +16,8 @@ auditwheel-emscripten is a tiny tool to facilitate the creation of Python wheel 
 [Pyodide](https://pyodide.org/en/stable/), but it can be used in any other projects that target
 Python-in-the-browser using Emscripten.
 
-`pyodide auditwheel show`: shows external shared libraries that the wheel depends on.
-`pyodide auditwheel copy`: copies these external shared libraries into the wheel itself.
-
-```sh
-$ pip install auditwheel-emscripten
-```
+- `pyodide auditwheel show`: shows external shared libraries that the wheel depends on.
+- `pyodide auditwheel copy`: copies these external shared libraries into the wheel itself.
 
 ## Usage (CLI)
 
