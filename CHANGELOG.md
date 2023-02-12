@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.0.12] - 2023.02.13
+
+### Fixed
+
+- Added license file to the distribution.
+  ([#10](https://github.com/ryanking13/auditwheel-emscripten/pull/10))
+
 ## [0.0.11] - 2023.02.06
 
 ### Added
