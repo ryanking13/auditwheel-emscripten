@@ -17,7 +17,7 @@ auditwheel-emscripten is a tiny tool to facilitate the creation of Python wheel 
 Python-in-the-browser using Emscripten.
 
 - `pyodide auditwheel show`: shows external shared libraries that the wheel depends on.
-- `pyodide auditwheel copy`: copies these external shared libraries into the wheel itself.
+- `pyodide auditwheel repair`: copies these external shared libraries into the wheel itself.
 
 ## Usage (CLI)
 
@@ -30,10 +30,10 @@ Python-in-the-browser using Emscripten.
 │ --help          Show this message and exit.                                                                                         │
 ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ copy      Copy shared libraries to the wheel directory. Similar to repair but does not modify the needed section of WASM module.    │
+│ copy      [Deprecated] Copy shared libraries to the wheel directory. Works same as repair. Use repair instead.          │
 │ exports   Show exports of a wheel or a shared library file.                                                                         │
 │ imports   Show imports of a wheel or a shared library file.                                                                         │
-│ repair    [Experimental] Repair a wheel file: copy shared libraries to the wheel directory and modify the path in the wheel file.   │
+│ repair    Repair a wheel file: copy shared libraries to the wheel directory.   │
 │ show      Show shared library dependencies of a wheel or a shared library file.                                                     │
 ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
@@ -50,7 +50,7 @@ The following external shared libraries are required:
 ```
 
 ```sh
-$ pyodide auditwheel copy --libdir <directory which contains libgeos_c.so> Shapely-1.8.2-cp310-cp310-emscripten_3_1_14_wasm32.whl
+$ pyodide auditwheel repair --libdir <directory which contains libgeos_c.so> Shapely-1.8.2-cp310-cp310-emscripten_3_1_14_wasm32.whl
 
 Repaired wheel has following external shared libraries:
 {
@@ -81,10 +81,6 @@ repaired_wheel = repair(
     "Shapely-1.8.2-cp310-cp310-emscripten_3_1_14_wasm32.whl",
     libdir="/path/where/shared/libraries/are/located",
     outdir="/path/to/output/directory",
-    # If set this to true, modify the needed section of WASM module.
-    # Note that is not compatible with WebAssembly dynamic linking ABI.
-    # https://github.com/WebAssembly/tool-conventions/blob/main/DynamicLinking.md
-    modify_needed_section=False,
 )
 libs = show(repaired_wheel)
 print(libs)
