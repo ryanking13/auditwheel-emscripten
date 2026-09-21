@@ -1,0 +1,39 @@
+CHANGELOG.md
+  s_048f884f068fc8::t_a52b43b9a08f85 10-14
+README.md
+  s_49811ccc795362::t_ccbe2e9baa15ad 20,53,56,59,61,63-64,90
+auditwheel_emscripten/cli/main.py
+  s_cd9ca839df54f0::t_dd1cb9cfc1e204 95-100,106,115-135,154-159,164,173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a8a814b73592705c161fb610a9f140f15f7bb22e",
+  "prompts": {},
+  "sessions": {
+    "s_048f884f068fc8": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f4caaccc4ffeNUFQg8e6dBqNwG",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Gyeongjae Choi <gyeongjae@cloudflare.com>"
+    },
+    "s_49811ccc795362": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f3d52b288ffe7Pg6qgBPNG7QKs",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Gyeongjae Choi <gyeongjae@cloudflare.com>"
+    },
+    "s_cd9ca839df54f0": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f5057d1fdffeTTn6DATQxV3eTr",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Gyeongjae Choi <gyeongjae@cloudflare.com>"
+    }
+  }
+}
